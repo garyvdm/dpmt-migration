@@ -34,20 +34,26 @@ def write_rules():
             println(f, 'end repository')
             println(f)
         println(f, r'''
-match /packages/([^/]+)/trunk/
+match /(metainfo|modules|tools|www)/
+end match
+
+match /packages/(trunk|tags)/ # pyelemental @ r5489
+end match
+
+match (?:/packages)?/([^/]+)/trunk/
   repository \1
   branch master
 end match
 
-#match /packages/([^/]+)/branches/([^/]+)/
+#match (?:/packages)?/([^/]+)/branches/([^/]+)/
 #  repository \1
 #  branch \2
 #end match
 
-match /packages/([^/]+)/branches/
+match (?:/packages)?/([^/]+)/branches/
 end match
 
-match /packages/([^/]+)/tags/([^/]+)/
+match (?:/packages)?/([^/]+)/tags/([^/]+)/
   repository \1
   branch refs/tags/\2
   # same as git-buildpackage's _sanitize_version
@@ -55,21 +61,14 @@ match /packages/([^/]+)/tags/([^/]+)/
   substitute branch s/:/%/
 end match
 
-match /packages/([^/]+)/debian/
+match (?:/packages)?/([^/]+)/debian/
   repository \1
   branch master
 end match
 
-match /packages/([^/]+)/(?!debian|branches|tags|trunk)[^/]+
+match (?:/packages)?/([^/]+)/(?!debian|branches|tags|trunk)[^/]+
 end match
 
-match /(gnupginterface|pygoogle|pyspf|urwid)/
-#  repository \1
-#  branch master
-end match
-
-match /(metainfo|modules|tools|www)/
-end match
 ''')
 
 
