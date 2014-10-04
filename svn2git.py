@@ -37,8 +37,13 @@ def write_rules():
 match /(metainfo|modules|tools|www)/
 end match
 
-match /packages/(trunk|tags)/ # pyelemental @ r5489
+match /packages/(trunk|tags|debian)/
 end match
+
+# packages that get renamed
+match /packages/(pyth|python-pyth)/ 
+end match
+
 
 match (?:/packages)?/([^/]+)/trunk/
   repository \1
