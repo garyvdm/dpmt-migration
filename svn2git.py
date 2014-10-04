@@ -60,7 +60,7 @@ match /packages/([^/]+)/debian/
   branch master
 end match
 
-match /packages/([^/]+)/(?!debian|branches|tags|trunk)[^/]+/
+match /packages/([^/]+)/(?!debian|branches|tags|trunk)[^/]+
 end match
 
 match /(gnupginterface|pygoogle|pyspf|urwid)/
