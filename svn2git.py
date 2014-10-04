@@ -5,7 +5,7 @@ import shutil
 import subprocess
 
 
-SVN2GIT = os.path.expanduser('~/git/svn2git/svn-all-fast-export')
+SVN2GIT = 'svn2git'
 
 
 def main():
@@ -50,6 +50,9 @@ end match
 match /packages/([^/]+)/tags/([^/]+)/
   repository \1
   branch refs/tags/\2
+  # same as git-buildpackage's _sanitize_version
+  substitute branch s/~/_/
+  substitute branch s/:/%/
 end match
 
 match /packages/([^/]+)/debian/
