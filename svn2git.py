@@ -21,9 +21,12 @@ def main():
     args = p.parse_args()
 
     prepare(args.target_dir)
-    write_rules(args.svn_repo)
+    packages = list_packages(args.svn_repo)
+    write_rules()
     migrate(args.svn_repo, args.target_dir, identity_map=args.identity_map,
             svn2git=args.svn2git)
+    for package in packages:
+        clean_svn_buildpackages_commits(os.path.join(args.target_dir, package))
 
 
 def prepare(target):
@@ -54,10 +57,8 @@ def iter_packages(xml):
                 yield parts[2]
 
 
-def write_rules(svn_repo):
+def write_rules(packages):
     """Generate a rules file"""
-    packages = list_packages(svn_repo)
-
     with open('rules.txt', 'w') as f:
         for package in packages:
             f.write('create repository {}\n'.format(package))
