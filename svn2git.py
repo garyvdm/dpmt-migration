@@ -13,11 +13,14 @@ def main():
                    help='svn-all-fast-export (svn2git) binary')
     p.add_argument('--target-dir', default='from-svn',
                    help='Parent directory for git repos')
+    p.add_argument('--identity-map', type=open,
+                   help='identity-map of svn usernames to git authors')
     args = p.parse_args()
 
     prepare(args.target_dir)
     write_rules()
-    migrate(args.target_dir, svn2git=args.svn2git)
+    migrate(args.target_dir, identity_map=args.identity_map,
+            svn2git=args.svn2git)
 
 
 def prepare(target):
@@ -80,13 +83,13 @@ end match
 ''')
 
 
-def migrate(target, svn2git):
-    # TODO: identity-map
+def migrate(target, identity_map, svn2git):
     rules = os.path.abspath('rules.txt')
     target = os.path.abspath(target)
-    subprocess.check_call(
-        (svn2git, '--rules', rules, '--stats', target),
-        cwd=target)
+    cmd = [svn2git, '--rules', rules, '--stats', target]
+    if identity_map:
+        cmd += ['--identity-map', identity_map]
+    subprocess.check_call(cmd, cwd=target)
 
 
 def clean_svn_buildpackages_commits(gitdir):
