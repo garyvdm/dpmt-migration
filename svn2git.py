@@ -45,9 +45,8 @@ match /packages/(trunk|tags|debian)/
 end match
 
 # packages that get renamed
-match /packages/(pyth|python-pyth)/ 
+match /packages/(pyth|python-pyth)/
 end match
-
 
 match (?:/packages)?/([^/]+)/trunk/
   repository \1
@@ -98,30 +97,36 @@ def clean_svn_buildpackages_commits(gitdir):
     base_git_args = ['git', '--git-dir={}'.format(gitdir)]
     refs = run(base_git_args + ['show-ref', '--tags'])
 
-    is_svn_buildpackage = re.compile(b'\n\n\[svn-buildpackage\]', flags=re.DOTALL).search
+    is_svn_buildpackage = re.compile(b'\n\n\[svn-buildpackage\]',
+                                     flags=re.DOTALL).search
 
     for ref in refs.splitlines():
         ref_sha, _, ref_name = ref.partition(b' ')
         commit = run(base_git_args + ['cat-file', '-p', ref_sha])
         if is_svn_buildpackage(commit):
-            first_parent = run(base_git_args + ['rev-list', ref_sha, '-n 2']).splitlines()[1]
+            first_parent = run(
+                base_git_args + ['rev-list', ref_sha, '-n 2']
+            ).splitlines()[1]
             r = b'^parent (?!' + first_parent + b').*?\n'
             new_commit, _ = re.subn(r, b'', commit, flags=re.MULTILINE)
 
-            hash_object_proc = subprocess.Popen(base_git_args + ['hash-object', '-w', '-t', 'commit', '--stdin'],
-                                                stdin=subprocess.PIPE, stdout=subprocess.PIPE)
+            hash_object_proc = subprocess.Popen(
+                base_git_args + ['hash-object', '-w', '-t', 'commit',
+                                 '--stdin'],
+                stdin=subprocess.PIPE, stdout=subprocess.PIPE)
             hash_object_proc.stdin.write(new_commit)
             hash_object_proc.stdin.close()
             hash_object_proc.wait()
             new_commit_sha = hash_object_proc.stdout.read().strip()
 
-            run(base_git_args + ['update-ref',
-                                 '-m', 'svn-buildpackage multiple parent cleanup',
-                                 ref_name, new_commit_sha, ref_sha])
+            run(base_git_args + [
+                'update-ref', '-m', 'svn-buildpackage multiple parent cleanup',
+                ref_name, new_commit_sha, ref_sha])
 
 
 def println(f, line=''):
     f.write(line + '\n')
+
 
 if __name__ == '__main__':
     main()
