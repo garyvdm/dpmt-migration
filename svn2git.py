@@ -49,9 +49,9 @@ def iter_packages(xml):
     root = ElementTree.fromstring(xml)
     for path in root.iter('path'):
         if path.get('kind') == 'dir':
-            parts = path.text.split('/', 2)
-            if len(parts) > 1 and parts[0] == 'packages':
-                yield parts[1]
+            parts = path.text.split('/', 3)
+            if len(parts) > 2 and parts[1] == 'packages':
+                yield parts[2]
 
 
 def write_rules(svn_repo):
