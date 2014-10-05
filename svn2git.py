@@ -22,8 +22,10 @@ def main():
 
     prepare(args.target_dir)
     packages = list_packages(args.svn_repo)
-    write_rules()
-    migrate(args.svn_repo, args.target_dir, identity_map=args.identity_map,
+    write_rules(packages)
+    migrate(args.svn_repo,
+            args.target_dir,
+            identity_map=args.identity_map.name,
             svn2git=args.svn2git)
     for package in packages:
         clean_svn_buildpackages_commits(os.path.join(args.target_dir, package))
@@ -108,7 +110,7 @@ end match
 def migrate(svn_repo, target, identity_map, svn2git):
     """Run the svn2git migration"""
     rules = os.path.abspath('rules.txt')
-    target = os.path.abspath(target)
+    svn_repo = os.path.abspath(svn_repo)
     cmd = [svn2git, '--rules', rules, '--stats']
     if identity_map:
         cmd += ['--identity-map', identity_map]
