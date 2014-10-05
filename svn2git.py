@@ -11,24 +11,24 @@ def main():
     p = argparse.ArgumentParser()
     p.add_argument('--svn2git', default='svn-all-fast-export',
                    help='svn-all-fast-export (svn2git) binary')
+    p.add_argument('--target-dir', default='from-svn',
+                   help='Parent directory for git repos')
     args = p.parse_args()
 
-    prepare()
+    prepare(args.target_dir)
     write_rules()
-    migrate(args.svn2git)
+    migrate(args.target_dir, svn2git=args.svn2git)
 
 
-def prepare():
-    target = 'migrated'
+def prepare(target):
     if os.path.exists(target):
         shutil.rmtree(target)
     os.mkdir(target)
-    os.chdir(target)
 
 
 def write_rules():
     packages = []
-    with open('../packages') as f:
+    with open('packages') as f:
         for line in f:
             packages.append(line.strip())
 
@@ -81,10 +81,14 @@ end match
 ''')
 
 
-def migrate(svn2git):
+def migrate(target, svn2git):
     # TODO: identity-map
-    subprocess.check_call((svn2git, '--rules=rules.txt', '--stats',
-                           '../python-modules'))
+    rules = os.path.abspath('rules.txt')
+    target = os.path.abspath(target)
+    subprocess.check_call(
+        (svn2git, '--rules', rules, '--stats', target),
+        cwd=target)
+
 
 def clean_svn_buildpackages_commits(gitdir):
     """Rewrites svn-buildpackages so that the only have one parent."""
