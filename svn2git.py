@@ -9,17 +9,19 @@ import re
 
 def main():
     p = argparse.ArgumentParser()
-    p.add_argument('--svn2git', default='svn-all-fast-export',
-                   help='svn-all-fast-export (svn2git) binary')
+    p.add_argument('svn_repo',
+                   help='Source SVN repo')
     p.add_argument('--target-dir', default='from-svn',
                    help='Parent directory for git repos')
+    p.add_argument('--svn2git', default='svn-all-fast-export',
+                   help='svn-all-fast-export (svn2git) binary')
     p.add_argument('--identity-map', type=open,
                    help='identity-map of svn usernames to git authors')
     args = p.parse_args()
 
     prepare(args.target_dir)
     write_rules()
-    migrate(args.target_dir, identity_map=args.identity_map,
+    migrate(args.svn_repo, args.target_dir, identity_map=args.identity_map,
             svn2git=args.svn2git)
 
 
@@ -83,12 +85,13 @@ end match
 ''')
 
 
-def migrate(target, identity_map, svn2git):
+def migrate(svn_repo, target, identity_map, svn2git):
     rules = os.path.abspath('rules.txt')
     target = os.path.abspath(target)
-    cmd = [svn2git, '--rules', rules, '--stats', target]
+    cmd = [svn2git, '--rules', rules, '--stats']
     if identity_map:
         cmd += ['--identity-map', identity_map]
+    cmd.append(svn_repo)
     subprocess.check_call(cmd, cwd=target)
 
 
