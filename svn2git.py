@@ -72,8 +72,8 @@ end match
 match /packages/(trunk|tags|debian)/
 end match
 
-# packages that get renamed
-match /packages/(pyth|python-pyth)/
+# packages that get renamed. YOLO.
+match /packages/((python-)?pyth|python-(shpinx-)?releases)/
 end match
 
 match (?:/packages)?/([^/]+)/trunk/
