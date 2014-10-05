@@ -27,6 +27,7 @@ def main():
 
 
 def prepare(target):
+    """Blow away any existing target directory"""
     if os.path.exists(target):
         shutil.rmtree(target)
     os.mkdir(target)
@@ -104,6 +105,7 @@ end match
 
 
 def migrate(svn_repo, target, identity_map, svn2git):
+    """Run the svn2git migration"""
     rules = os.path.abspath('rules.txt')
     target = os.path.abspath(target)
     cmd = [svn2git, '--rules', rules, '--stats']
@@ -114,8 +116,12 @@ def migrate(svn_repo, target, identity_map, svn2git):
 
 
 def clean_svn_buildpackages_commits(gitdir):
-    """Rewrites svn-buildpackages so that the only have one parent."""
+    """
+    Rewrites svn-buildpackage tags so that they only have one parent.
 
+    svn-buildpackage uses "svn cp . REMOTE_URL" when generating tags, so if the
+    working directory is out of date, tag commits have many parents.
+    """
     run = subprocess.check_output
 
     base_git_args = ['git', '--git-dir={}'.format(gitdir)]
