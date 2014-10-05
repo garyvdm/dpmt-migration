@@ -1,18 +1,21 @@
 #!/usr/bin/env python3
 
+import argparse
 import os
 import shutil
 import subprocess
 import re
 
 
-SVN2GIT = 'svn2git'
-
-
 def main():
+    p = argparse.ArgumentParser()
+    p.add_argument('--svn2git', default='svn-all-fast-export',
+                   help='svn-all-fast-export (svn2git) binary')
+    args = p.parse_args()
+
     prepare()
     write_rules()
-    migrate()
+    migrate(args.svn2git)
 
 
 def prepare():
@@ -78,9 +81,9 @@ end match
 ''')
 
 
-def migrate():
+def migrate(svn2git):
     # TODO: identity-map
-    subprocess.check_call((SVN2GIT, '--rules=rules.txt', '--stats',
+    subprocess.check_call((svn2git, '--rules=rules.txt', '--stats',
                            '../python-modules'))
 
 def clean_svn_buildpackages_commits(gitdir):
