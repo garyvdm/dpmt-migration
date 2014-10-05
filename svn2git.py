@@ -27,7 +27,8 @@ def main():
             args.target_dir,
             identity_map=args.identity_map.name,
             svn2git=args.svn2git)
-    for package in packages:
+    for package in sorted(packages):
+        print('Cleaning svn-buildpackage tags in {}'.format(package))
         clean_svn_buildpackages_commits(os.path.join(args.target_dir, package))
 
 
@@ -125,6 +126,12 @@ def clean_svn_buildpackages_commits(gitdir):
     svn-buildpackage uses "svn cp . REMOTE_URL" when generating tags, so if the
     working directory is out of date, tag commits have many parents.
     """
+
+    # Skip empty repositories, and ones without tags
+    for type_ in ('heads', 'tags'):
+        if not os.listdir(os.path.join(gitdir, 'refs', type_)):
+            return
+
     run = subprocess.check_output
 
     base_git_args = ['git', '--git-dir={}'.format(gitdir)]
@@ -137,9 +144,17 @@ def clean_svn_buildpackages_commits(gitdir):
         ref_sha, _, ref_name = ref.partition(b' ')
         commit = run(base_git_args + ['cat-file', '-p', ref_sha])
         if is_svn_buildpackage(commit):
-            first_parent = run(
-                base_git_args + ['rev-list', ref_sha, '-n 2']
-            ).splitlines()[1]
+            parents = run(
+                base_git_args + ['rev-list', ref_sha, '-n 3']
+            ).splitlines()
+            if len(parents) < 2:
+                print('Orphaned tag commit: {} {}'.format(ref_sha, ref_name))
+                continue
+            elif len(parents) < 3:
+                # No octopuses detected
+                continue
+            first_parent = parents[1]
+
             r = b'^parent (?!' + first_parent + b').*?\n'
             new_commit, _ = re.subn(r, b'', commit, flags=re.MULTILINE)
 
