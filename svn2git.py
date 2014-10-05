@@ -39,10 +39,9 @@ def write_rules():
 
     with open('rules.txt', 'w') as f:
         for package in packages:
-            println(f, 'create repository {}'.format(package))
-            println(f, 'end repository')
-            println(f)
-        println(f, r'''
+            f.write('create repository {}\n'.format(package))
+            f.write('end repository\n\n')
+        f.write(r'''
 match /(metainfo|modules|tools|www)/
 end match
 
@@ -81,7 +80,6 @@ end match
 
 match (?:/packages)?/([^/]+)/(?!debian|branches|tags|trunk)[^/]+
 end match
-
 ''')
 
 
@@ -128,10 +126,6 @@ def clean_svn_buildpackages_commits(gitdir):
             run(base_git_args + [
                 'update-ref', '-m', 'svn-buildpackage multiple parent cleanup',
                 ref_name, new_commit_sha, ref_sha])
-
-
-def println(f, line=''):
-    f.write(line + '\n')
 
 
 if __name__ == '__main__':
