@@ -5,6 +5,7 @@ import os
 import shutil
 import subprocess
 import re
+from xml.etree import ElementTree
 
 
 def main():
@@ -20,7 +21,7 @@ def main():
     args = p.parse_args()
 
     prepare(args.target_dir)
-    write_rules()
+    write_rules(args.svn_repo)
     migrate(args.svn_repo, args.target_dir, identity_map=args.identity_map,
             svn2git=args.svn2git)
 
@@ -31,11 +32,30 @@ def prepare(target):
     os.mkdir(target)
 
 
-def write_rules():
-    packages = []
-    with open('packages') as f:
-        for line in f:
-            packages.append(line.strip())
+def list_packages(svn_repo):
+    """
+    Traverse all the revisions in the SVN repo, listing contents of the
+    packages directory.
+    """
+    svn_url = 'file://' + os.path.abspath(svn_repo)
+    xml = subprocess.check_output(
+        ('svn', 'log', '--xml', '--verbose', svn_url))
+    return set(iter_packages(xml))
+
+
+def iter_packages(xml):
+    """Yield packages from svn log XML"""
+    root = ElementTree.fromstring(xml)
+    for path in root.iter('path'):
+        if path.get('kind') == 'dir':
+            parts = path.text.split('/', 2)
+            if len(parts) > 1 and parts[0] == 'packages':
+                yield parts[1]
+
+
+def write_rules(svn_repo):
+    """Generate a rules file"""
+    packages = list_packages(svn_repo)
 
     with open('rules.txt', 'w') as f:
         for package in packages:
